@@ -10,9 +10,11 @@ import { Connection, ConnectionOptions, createConnection } from "typeorm";
 import { Photo } from "./entitiy/Photo";
 import { User } from "./entitiy/User";
 import { Vote } from "./entitiy/Vote";
+import { Logger } from "./logger";
 
 // Discordクライアント
 const client = new Client();
+const logger = new Logger();
 
 // TypeORMのオプション
 const options: ConnectionOptions = {
@@ -30,6 +32,7 @@ async function connectDB() {
   await connection.query("PRAGMA foreign_keys=OFF");
   await connection.synchronize();
   await connection.query("PRAGMA foreign_keys=ON");
+  logger.info("DB connected", "DB");
 }
 
 // コネクションする
@@ -58,9 +61,9 @@ client.on("ready", () => {
         options: [
           {
             name: "command",
-            description: "コマンド",
+            description: "UserNameをつけることができます",
             type: 3,
-            required: true,
+            required: false,
           },
         ],
       },
@@ -69,7 +72,7 @@ client.on("ready", () => {
   client.ws.on(<WSEventType>"INTERACTION_CREATE", async (interaction) => {
     const command = interaction.data.name.toLowerCase();
     const args = interaction.data.options;
-    console.log(interaction.data);
+    // console.log(interaction.data);
 
     if (command === "meshi") {
       // here you could do anything. in this sample
@@ -99,7 +102,7 @@ client.on("ready", () => {
 // メッセージが来たとき
 client.on("message", async (msg) => {
   if (msg.author.bot) return;
-  if (true) {
+  if (msg.channel.id == "812367810415296572") {
     if (!!msg.attachments.size) {
       const sendUser = await getUser(msg.author.id);
       await addPhoto(<User>sendUser, msg.id);
@@ -116,7 +119,7 @@ async function getScore(photos: Photo[] | undefined) {
   for (const p of photos) {
     const voteRepository = connection?.getRepository(Vote);
     const votes = await voteRepository?.find({ photo: p });
-    console.log(votes);
+    // console.log(votes);
     votes?.forEach((v) => {
       if (v.vote == "up") {
         score++;
@@ -133,7 +136,7 @@ async function getUser(userId: string): Promise<User | undefined> {
     { relations: ["photos", "votes"] }
   );
   if (!findResult) {
-    console.log("not found");
+    // console.log("not found");
     const newUser = userRepository?.create({
       userId,
     });
