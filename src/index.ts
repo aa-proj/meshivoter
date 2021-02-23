@@ -72,11 +72,8 @@ client.on("ready", () => {
   client.ws.on(<WSEventType>"INTERACTION_CREATE", async (interaction) => {
     const command = interaction.data.name.toLowerCase();
     const args = interaction.data.options;
-    // console.log(interaction.data);
 
     if (command === "meshi") {
-      // here you could do anything. in this sample
-      // i reply with an api interaction
       const sendUser = await getUser(interaction.member.user.id);
       const sendUserName = getNameFromID(interaction.member.user.id);
       // @ts-ignore
