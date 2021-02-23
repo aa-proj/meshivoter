@@ -1,8 +1,10 @@
 import {
+  APIMessage,
   BaseClient,
   Client,
   Emoji,
   Message,
+  MessageEmbed,
   TextChannel,
   WSEventType,
 } from "discord.js";
@@ -74,27 +76,56 @@ client.on("ready", () => {
     const args = interaction.data.options;
 
     if (command === "meshi") {
+      let cmdUserId;
+      if (args) {
+        cmdUserId = args.find((arg: any) => arg.name.toLowerCase() == "command")
+          .value;
+      }
+      if (!cmdUserId) cmdUserId = interaction.member.user.id;
+      console.log(cmdUserId);
+
       const sendUser = await getUser(interaction.member.user.id);
       const sendUserName = getNameFromID(interaction.member.user.id);
+      // console.log(sendUserName);
+      const embed = new MessageEmbed()
+        .setAuthor(
+          sendUserName,
+          "https://cdn.discordapp.com/avatars/" +
+            interaction.member.user.id +
+            "/" +
+            interaction.member.user.avatar +
+            ".png"
+        )
+        .setDescription(
+          [
+            "投票数: " + (sendUser?.votes?.length || "0"),
+            "写真数: " + (sendUser?.photos?.length || "0"),
+            "スコア: " + (await getScore(sendUser?.photos)),
+          ].join("\n")
+        );
+      // console.log(embed);
       // @ts-ignore
       client.api.interactions(interaction.id, interaction.token).callback.post({
         data: {
           type: 4,
-          data: {
-            content:
-              sendUserName +
-              "\nVote数 :" +
-              sendUser?.votes?.length +
-              "\nPhoto数:" +
-              sendUser?.photos?.length +
-              "\nScore: " +
-              (await getScore(sendUser?.photos)),
-          },
+          data: await createAPIMessage(interaction, embed),
         },
       });
     }
   });
 });
+
+async function createAPIMessage(interaction: any, content: any) {
+  const apiMessage = await APIMessage.create(
+    // @ts-ignore
+    client.channels.resolve(interaction.channel_id),
+    content
+  )
+    .resolveData()
+    .resolveFiles();
+
+  return { ...apiMessage.data, files: apiMessage.files };
+}
 
 // メッセージが来たとき
 client.on("message", async (msg) => {
