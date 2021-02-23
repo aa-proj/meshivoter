@@ -124,15 +124,31 @@ client.on("ready", () => {
 async function sendOneDayRank() {
   const afterDate = new Date().getDate() - 1000 * 60 * 60 * 24;
   const photoRepository = connection?.getRepository(Photo);
-  const todayPhoto = await photoRepository?.find({
+  const todayPhotos = await photoRepository?.find({
     where: {
       uploadTime: Raw((d) => `${d} > ${afterDate}`),
     },
-    relations: ["votes"],
+    relations: ["votes", "user"],
   });
-  console.log(todayPhoto);
-  // @ts-ignore
-  console.log(todayPhoto[0].votes.length);
+  let ranking: any = {};
+  todayPhotos?.forEach((photo) => {
+    photo.votes?.forEach((v) => {
+      if (photo.user) {
+        if (!ranking[photo.user.userId]) {
+          ranking[photo.user.userId] = {};
+        }
+        // ranking[photo.user.userId].score = 0;
+        if (v.vote == "up") {
+          if (ranking[photo.user.userId].score) {
+            ranking[photo.user.userId].score++;
+          } else {
+            ranking[photo.user.userId].score = 1;
+          }
+        }
+      }
+    });
+  });
+  console.log(ranking);
 }
 
 async function createAPIMessage(interaction: any, content: any) {
