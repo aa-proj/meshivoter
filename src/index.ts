@@ -147,6 +147,7 @@ async function addPhoto(user: User, photoId: string) {
   const newPhoto = photoRepository?.create({
     user,
     photoId,
+    uploadTime: new Date().getTime(),
   });
   await photoRepository?.save(<Photo>newPhoto);
 }
@@ -163,6 +164,7 @@ async function addVote(photo: Photo, user: User, vote: string) {
       user,
       photo,
       vote: vote == "➖" ? "normal" : "up",
+      voteTime: new Date().getTime(),
     });
     await voteRepository?.save(<Vote>newVote);
   }

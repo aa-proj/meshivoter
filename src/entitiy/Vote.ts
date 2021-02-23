@@ -7,6 +7,9 @@ export class Vote {
   @PrimaryGeneratedColumn("increment")
   id!: number;
 
+  @Column({ default: null })
+  voteTime: number;
+
   @ManyToOne(() => User)
   user?: User;
 

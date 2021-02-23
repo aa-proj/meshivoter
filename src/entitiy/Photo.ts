@@ -16,6 +16,9 @@ export class Photo {
   @Column()
   photoId: string;
 
+  @Column({ default: null })
+  uploadTime: number;
+
   @OneToMany(() => Vote, (vote) => vote.user)
   votes?: Vote[];
 
