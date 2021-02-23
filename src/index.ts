@@ -89,9 +89,9 @@ client.on("ready", () => {
       const sendUser = await getUser(found);
       const sendUserName = getNameFromID(found);
 
-      let g = client.guilds.cache.get("606109479003750440");
-      const id = g.member(found)?.id;
-      const avatar = g.member(found)?.user.avatar;
+      let g = await client.guilds.cache.get("606109479003750440");
+      const id = g?.member(found)?.id;
+      const avatar = g?.member(found)?.user.avatar;
 
       // console.log(sendUserName);
       const embed = new MessageEmbed()
