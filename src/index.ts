@@ -8,11 +8,12 @@ import {
   TextChannel,
   WSEventType,
 } from "discord.js";
-import { Connection, ConnectionOptions, createConnection } from "typeorm";
+import { Connection, ConnectionOptions, createConnection, Raw } from "typeorm";
 import { Photo } from "./entitiy/Photo";
 import { User } from "./entitiy/User";
 import { Vote } from "./entitiy/Vote";
 import { Logger } from "./logger";
+import cron from "node-cron";
 
 // Discordクライアント
 const client = new Client();
@@ -39,6 +40,8 @@ async function connectDB() {
 
 // コネクションする
 connectDB();
+
+cron.schedule("0 0 6 * * *", () => sendOneDayRank());
 
 // リアクションされたときのインターフェース
 interface IReaction {
@@ -106,6 +109,7 @@ client.on("ready", () => {
             "スコア: " + (await getScore(sendUser?.photos)),
           ].join("\n")
         );
+      sendOneDayRank();
       // @ts-ignore
       client.api.interactions(interaction.id, interaction.token).callback.post({
         data: {
@@ -116,6 +120,20 @@ client.on("ready", () => {
     }
   });
 });
+
+async function sendOneDayRank() {
+  const afterDate = new Date().getDate() - 1000 * 60 * 60 * 24;
+  const photoRepository = connection?.getRepository(Photo);
+  const todayPhoto = await photoRepository?.find({
+    where: {
+      uploadTime: Raw((d) => `${d} > ${afterDate}`),
+    },
+    relations: ["votes"],
+  });
+  console.log(todayPhoto);
+  // @ts-ignore
+  console.log(todayPhoto[0].votes.length);
+}
 
 async function createAPIMessage(interaction: any, content: any) {
   const apiMessage = await APIMessage.create(
