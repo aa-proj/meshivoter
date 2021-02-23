@@ -83,18 +83,21 @@ client.on("ready", () => {
       }
       if (!cmdUserId) cmdUserId = interaction.member.user.id;
       console.log(cmdUserId);
+      const regex = /\d+/;
+      const found = cmdUserId.match(regex)[0];
 
-      const sendUser = await getUser(interaction.member.user.id);
-      const sendUserName = getNameFromID(interaction.member.user.id);
+      const sendUser = await getUser(found);
+      const sendUserName = getNameFromID(found);
+
+      let g = client.guilds.cache.get("606109479003750440");
+      const id = g.member(found)?.id;
+      const avatar = g.member(found)?.user.avatar;
+
       // console.log(sendUserName);
       const embed = new MessageEmbed()
         .setAuthor(
           sendUserName,
-          "https://cdn.discordapp.com/avatars/" +
-            interaction.member.user.id +
-            "/" +
-            interaction.member.user.avatar +
-            ".png"
+          "https://cdn.discordapp.com/avatars/" + id + "/" + avatar + ".png"
         )
         .setDescription(
           [
@@ -103,7 +106,6 @@ client.on("ready", () => {
             "スコア: " + (await getScore(sendUser?.photos)),
           ].join("\n")
         );
-      // console.log(embed);
       // @ts-ignore
       client.api.interactions(interaction.id, interaction.token).callback.post({
         data: {
